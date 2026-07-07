@@ -1,0 +1,104 @@
+DIGITAL IDENTITY MINI-COURSE — DEPLOYMENT GUIDE
+================================================
+Stack: Git + Supabase (auth) + Cloudflare Pages (static hosting)
+
+
+1. PREREQUISITES
+-----------------
+- Node.js 18+ and npm installed locally
+- A GitHub (or GitLab) account
+- A Cloudflare account (free tier is fine)
+- A Supabase account and project (free tier is fine)
+
+
+2. SET UP SUPABASE (AUTH ONLY)
+-------------------------------
+1. Go to https://supabase.com and create a new project.
+2. In the project dashboard, go to Settings -> API.
+3. Copy two values:
+   - Project URL          -> VITE_SUPABASE_URL
+   - anon public API key  -> VITE_SUPABASE_ANON_KEY
+4. Go to Authentication -> Providers and confirm "Email" is enabled
+   (it is enabled by default).
+5. Go to Authentication -> URL Configuration and add your future
+   Cloudflare Pages URL (e.g. https://your-project.pages.dev) once
+   you have it, so email confirmation links redirect correctly.
+
+Note: this build only uses Supabase for login/sign-up. Course
+progress and quiz scores are kept in the browser session (React
+state) and are not written to a database.
+
+
+3. LOCAL SETUP
+---------------
+1. Unzip the project folder.
+2. Open a terminal in the project folder.
+3. Copy the env template and fill in your Supabase values:
+     cp .env.example .env
+   Then edit .env and paste in your Project URL and anon key.
+4. Install dependencies:
+     npm install
+5. Run it locally to confirm it works:
+     npm run dev
+   Open the printed local URL (usually http://localhost:5173) and
+   confirm you can sign up / sign in.
+
+
+4. PUSH TO GIT
+---------------
+1. Initialize a repo (skip if already a repo):
+     git init
+2. Add and commit all files:
+     git add .
+     git commit -m "Initial commit: Digital Identity Mini-Course"
+3. Create a new repository on GitHub (via the website), then:
+     git remote add origin <your-repo-url>
+     git branch -M main
+     git push -u origin main
+
+Note: .env is excluded via .gitignore, so your Supabase keys are
+never committed. You'll re-enter them as environment variables in
+Cloudflare Pages (step 5).
+
+
+5. DEPLOY ON CLOUDFLARE PAGES
+------------------------------
+1. Log in to the Cloudflare dashboard: https://dash.cloudflare.com
+2. Go to Workers & Pages -> Create -> Pages -> Connect to Git.
+3. Select the GitHub repository you just pushed.
+4. Configure the build settings:
+     Framework preset:   Vite
+     Build command:      npm run build
+     Build output dir:   dist
+5. Under "Environment variables," add:
+     VITE_SUPABASE_URL      = <your Supabase project URL>
+     VITE_SUPABASE_ANON_KEY = <your Supabase anon public key>
+6. Click "Save and Deploy." Cloudflare will install dependencies,
+   build the project, and give you a live URL
+   (e.g. https://your-project.pages.dev).
+7. Go back to Supabase -> Authentication -> URL Configuration and
+   set the Site URL / Redirect URLs to your live Cloudflare Pages
+   URL, if you haven't already.
+
+
+6. ONGOING DEPLOYS
+-------------------
+Every time you push a commit to the "main" branch on GitHub,
+Cloudflare Pages automatically rebuilds and redeploys the site.
+No manual redeploy steps are needed.
+
+
+7. WHAT'S INCLUDED IN THIS PROJECT
+------------------------------------
+- src/App.jsx           Main course app (modules, lessons, quizzes)
+- src/Login.jsx          Supabase email/password sign-in screen
+- src/supabaseClient.js  Supabase client setup
+- public/course-export.pdf   Static, pre-built PDF of the full
+                              course, downloadable at the end of
+                              the capstone module
+- .env.example           Template for your Supabase credentials
+- package.json            Dependencies and build scripts
+- vite.config.js          Build configuration
+
+Everything is a plain, editable source file — open any .jsx file
+in a text editor to change content, styling, or logic.
